@@ -1,4 +1,4 @@
-import { GL_BLEND, GL_COLOR_BUFFER_BIT, GL_TEXTURE0, GL_TEXTURE_2D, GL_TRIANGLES } from './gl-constants';
+import { GL_BLEND, GL_TEXTURE0, GL_TEXTURE_2D, GL_TRIANGLES } from './gl-constants';
 import { Settings } from '../settings';
 import { Scene } from '../scenes/scene';
 import { Framebuffer } from './framebuffer';

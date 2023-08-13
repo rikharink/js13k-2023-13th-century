@@ -3,11 +3,8 @@ import { Sprite } from '../rendering/sprite';
 import { Scene } from './scene';
 import { Camera } from '../rendering/camera';
 import { AABB } from '../math/geometry/aabb';
-import { keyboardManager, pointerManager } from '../game';
-import { add, subtract } from '../math/vector2';
 import { clamp, sat } from '../math/util';
 import { Settings } from '../settings';
-import { generateSolidTexture } from '../textures/textures';
 import { center } from '../math/geometry/rectangle';
 
 const PLAYER_ID = 0;
