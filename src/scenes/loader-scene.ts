@@ -6,6 +6,7 @@ import { Percentage } from '../types';
 import { Scene } from './scene';
 
 export class LoaderScene implements Scene {
+  public sceneTime: number = 0;
   public name = 'loader';
   public sprites: Sprite[] = [];
   public bounds: AABB = {
@@ -38,10 +39,12 @@ export class LoaderScene implements Scene {
   public onPop(): void {
     this.running = false;
     document.getElementById('app')!.removeChild(this.canvas);
+    console.debug(`Scene ${this.name} ran for ${this.sceneTime}ms`);
   }
 
   public loadLoop(now: number) {
     if (!this.running) return;
+    this.sceneTime = now;
     requestAnimationFrame(this.loadLoop.bind(this));
 
     const ctx = this.ctx;

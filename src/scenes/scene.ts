@@ -9,6 +9,7 @@ export interface Scene {
   trauma: number;
   traumaDampening: number;
   camera: Camera;
+  sceneTime: number;
   onPush(): void;
   onPop(): void;
   tick(camera: Camera): void;

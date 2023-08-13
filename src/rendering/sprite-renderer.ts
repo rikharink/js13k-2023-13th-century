@@ -179,6 +179,9 @@ export class SpriteRenderer implements Renderer {
   }
 
   end(gl: WebGL2RenderingContext): void {
+    if (this.instanceCount === 0) {
+      return;
+    }
     gl.bufferSubData(GL_ARRAY_BUFFER, 0, this.data);
     gl.uniform1i(this.shader['u_texture'], 2);
     gl.drawElements(GL_TRIANGLES, 6 * this.instanceCount, GL_UNSIGNED_SHORT, 0);

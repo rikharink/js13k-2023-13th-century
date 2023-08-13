@@ -47,18 +47,7 @@ export class HudRenderer implements Renderer {
     const ctx = this.ctx;
     ctx.clearRect(0, 0, Settings.resolution[0], Settings.resolution[1]);
     this.drawText(secondsToHms(Math.floor(now / 1000)), [30, 30]);
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = `${today.getMonth() + 1}`.padStart(2, '0');
-    const day = `${today.getDate()}`.padStart(2, '0');
-    
-    this.drawText(`${year}-${month}-${day}`, [
-      30,
-      Settings.resolution[1] - 42 - 30,
-    ]);
-
     this.drawText(`sprites: ${count}`, [Settings.resolution[0] - 30, 30]);
-
     gl.uniform1i(this.shader['u_buffer'], 3);
     gl.activeTexture(GL_TEXTURE3);
     const hudTexture = this.getTexture(gl);

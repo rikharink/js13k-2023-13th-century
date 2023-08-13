@@ -9,7 +9,7 @@ export interface Sprite {
   id: number;
   drawRect: Rectangle;
   sourceRect: Rectangle;
-  collider: Collider;
+  collider: Collider | null;
   color: NormalizedRgbColor;
   texture: Texture;
   velocity: Vector2;

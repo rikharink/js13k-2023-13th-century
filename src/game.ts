@@ -3,7 +3,6 @@ import spriteVert from './rendering/shaders/sprite.vert';
 import spriteFrag from './rendering/shaders/sprite.frag';
 import postVert from './rendering/shaders/post.vert';
 import postFrag from './rendering/shaders/post.frag';
-import vhsFrag from './rendering/shaders/vhs.frag';
 
 import { SceneManager } from './managers/scene-manager';
 import { getRandom } from './math/random';
@@ -16,17 +15,13 @@ import { AudioSystem } from './audio/audio-system';
 import { BaseScene } from './scenes/base-scene';
 import { ResourceManagerBuilder } from './managers/resource-manager';
 import { ColorCorrection } from './rendering/post-effects/color-correction';
-import { Passthrough } from './rendering/post-effects/passthrough';
-import { Vhs } from './rendering/post-effects/vhs';
-import { generateColorNoiseTexture } from './textures/textures';
-import atlasTexture from './textures/atlas.png';
-import _atlas from './textures/atlas.json';
-import { Atlas } from './textures/atlas';
 import GUI from 'lil-gui';
 import noise from './textures/noise.svg';
+import parchment from './textures/parchment.svg';
 import { Camera } from './rendering/camera';
 import { TAU } from './math/const';
-const atlas = _atlas as Atlas;
+import { Passthrough } from './rendering/post-effects/passthrough';
+import { generateSolidTexture } from './textures/textures';
 
 let lil;
 let gui: GUI;
@@ -47,9 +42,9 @@ const gl = canvas.getContext('webgl2', {
   alpha: false,
 })!;
 
-const keyboardManager = new KeyboardManager();
-const gamepadManager = new GamepadManager();
-const pointerManager = new PointerManager(canvas);
+export const keyboardManager = new KeyboardManager();
+export const gamepadManager = new GamepadManager();
+export const pointerManager = new PointerManager(canvas);
 
 const camera = new Camera([Settings.resolution[0], Settings.resolution[1]]);
 
@@ -58,19 +53,17 @@ let isPaused = false;
 export const rng = getRandom('JS13K2023');
 
 const sceneManager = new SceneManager();
-export let t = 0;
+export let gameTime = 0;
 
 new ResourceManagerBuilder()
   .addShader('sprite', spriteVert, spriteFrag)
-  .addShader('vhs', postVert, vhsFrag)
   .addShader('post', postVert, postFrag)
-  .addProceduralTexture('noise', () => generateColorNoiseTexture(gl, [2048, 2048], rng))
-  .addTextureAtlas(atlasTexture, atlas, true)
+  .addProceduralTexture('sc', () => generateSolidTexture(gl, [1, 1, 1]))
   .addSvgTexture('snoise', noise, false, true)
+  .addSvgTexture('bg', parchment, false, true)
   .build(gl, sceneManager)
   .then((resourceManager) => {
     resourceManager
-      .addPostEffect('vhs', new Vhs(gl, resourceManager))
       .addPostEffect('cc', new ColorCorrection(gl, resourceManager))
       .addPostEffect('pt', new Passthrough(gl, resourceManager, null));
 
@@ -81,13 +74,10 @@ new ResourceManagerBuilder()
     if (import.meta.env.DEV) {
       const settings = gui.addFolder('settings');
       settings.add(Settings, 'fixedDeltaTime');
-      settings.addColor(Settings, 'clearColor');
       settings.add(Settings, 'timeScale', 0, 1);
 
       const pfx = gui.addFolder('postEffects');
       pfx.add(resourceManager.getPostEffect('cc'), 'isEnabled').name('cc enabled');
-      pfx.add(resourceManager.getPostEffect('vhs'), 'isEnabled').name('vhs enabled');
-      pfx.add(resourceManager.getPostEffect('vhs'), 'bend', 0.00000001, 5, 0.0001);
       pfx.add(resourceManager.getPostEffect('cc'), 'contrast', -1, 1, 0.05);
       pfx.add(resourceManager.getPostEffect('cc'), 'brightness', -1, 1, 0.05);
       pfx.add(resourceManager.getPostEffect('cc'), 'exposure', -1, 1, 0.05);
@@ -103,14 +93,6 @@ new ResourceManagerBuilder()
       cameraGui.add(camera, 'rotation', 0, TAU);
       cameraGui.add(Settings, 'maxRotationalShake', 0, TAU, 0.001);
       cameraGui.add(Settings, 'maxTranslationalShake', 0, 1000, 1);
-      cameraGui.add(Settings, 'followCam').onChange((f: boolean) => {
-        if (!f) {
-          camera.followSpeed = [0.3, 0.3];
-          camera.wantedOrigin = camera.center;
-        } else {
-          camera.followSpeed = [0.1, 0.1];
-        }
-      });
 
       stats = new s.default();
       stats!.showPanel(0);
@@ -134,7 +116,6 @@ new ResourceManagerBuilder()
       requestAnimationFrame(gameloop);
       if (isPaused) return;
 
-      t = now;
       const dt = now - _then;
       if (dt > 1000) {
         _then = now;
@@ -145,15 +126,17 @@ new ResourceManagerBuilder()
       while (_accumulator >= Settings.fixedDeltaTime) {
         //FIXED STEP
         sceneManager.currentScene.tick(camera);
-        camera.update(t, sceneManager.currentScene.trauma * sceneManager.currentScene.trauma);
-        t += Settings.fixedDeltaTime;
+        camera.update(gameTime, sceneManager.currentScene.trauma * sceneManager.currentScene.trauma);
+
+        keyboardManager.clear();
+        gameTime += Settings.fixedDeltaTime * Settings.timeScale;
         _accumulator -= Settings.fixedDeltaTime;
       }
 
       //VARIABLE STEP
-
+      const alpha = _accumulator / Settings.fixedDeltaTime;
       renderer.begin(gl);
-      renderer.render(gl, sceneManager.currentScene, _accumulator / Settings.fixedDeltaTime, now);
+      renderer.render(gl, sceneManager.currentScene, alpha, gameTime);
       renderer.end(gl);
 
       keyboardManager.tick();
