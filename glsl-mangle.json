@@ -1,0 +1,22 @@
+{
+  "u_mvpMatrix": "m",
+  "u_textureMatrix": "t",
+  "u_blend": "b",
+  "u_atlas": "a",
+  "u_colorMatrix": "m",
+  "u_offset": "o",
+  "a_position": "p",
+  "a_uv": "u",
+  "f_color": "c",
+  "v_uv": "v",
+  "v_color": "vco",
+  "a_color": "vca",
+  "u_buffer": "f",
+  "u_noise": "n",
+  "u_time": "s",
+  "u_bend": "be",
+  "u_colorFilter": "cf",
+  "u_paused": "pa",
+  "u_projectionViewMatrix": "pvm",
+  "u_texture": "ut"
+}

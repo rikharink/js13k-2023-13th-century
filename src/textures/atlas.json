@@ -1,0 +1,69 @@
+{
+  "textures": [
+    {
+      "name": "0",
+      "position": [0, 0],
+      "size": [6, 5]
+    },
+    {
+      "name": "1",
+      "position": [6, 0],
+      "size": [6, 5]
+    },
+    {
+      "name": "2",
+      "position": [12, 0],
+      "size": [6, 5]
+    },
+    {
+      "name": "3",
+      "position": [18, 0],
+      "size": [6, 5]
+    },
+    {
+      "name": "4",
+      "position": [24, 0],
+      "size": [6, 5]
+    },
+    {
+      "name": "5",
+      "position": [30, 0],
+      "size": [6, 5]
+    },
+    {
+      "name": "6",
+      "position": [36, 0],
+      "size": [6, 5]
+    },
+    {
+      "name": "7",
+      "position": [42, 0],
+      "size": [6, 5]
+    },
+    {
+      "name": "8",
+      "position": [48, 0],
+      "size": [6, 5]
+    },
+    {
+      "name": "9",
+      "position": [54, 0],
+      "size": [6, 5]
+    },
+    {
+      "name": "man",
+      "position": [0, 8],
+      "size": [8, 8]
+    },
+    {
+      "name": "fire",
+      "position": [8, 8],
+      "size": [8, 8]
+    },
+    {
+      "name": "snake",
+      "position": [16, 8],
+      "size": [8, 8]
+    }
+  ]
+}
