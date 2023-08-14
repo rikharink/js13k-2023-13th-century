@@ -1,3 +1,6 @@
+import { PhysicsWorld } from '../game/physics-world';
+import { ResourceManager } from '../managers/resource-manager';
+import { SceneManager } from '../managers/scene-manager';
 import { AABB } from '../math/geometry/aabb';
 import { Camera } from '../rendering/camera';
 import { Sprite } from '../rendering/sprite';
@@ -29,6 +32,10 @@ export class LoaderScene implements Scene {
     this.canvas.height = Settings.resolution[1];
     this.canvas.style.position = 'absolute';
   }
+
+  public physicsWorld!: PhysicsWorld;
+  public sceneManager!: SceneManager;
+  public resourceManager!: ResourceManager;
 
   public onPush(): void {
     this.running = true;
@@ -76,5 +83,5 @@ export class LoaderScene implements Scene {
     ctx.fillRect(x, y, mw * s, mh);
   }
 
-  public tick(_camera: Camera): void {}
+  public tick(): void {}
 }

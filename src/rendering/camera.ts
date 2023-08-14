@@ -1,5 +1,13 @@
 import { AABB } from '../math/geometry/aabb';
-import { Matrix4x4, create, fromRotationTranslationScaleOrigin, lookAt, multiply, ortho } from '../math/matrix4x4';
+import {
+  Matrix4x4,
+  create,
+  fromRotationTranslationScaleOrigin,
+  identity,
+  lookAt,
+  multiply,
+  ortho,
+} from '../math/matrix4x4';
 import { Noise2D, makeNoise2D } from '../math/noise/2d';
 import { Quaternion, from_axis } from '../math/quaternion';
 import { Vector2, add, mul, scale, subtract } from '../math/vector2';
@@ -31,7 +39,9 @@ export class Camera {
   }
 
   public reset(): void {
-    this._translation = [0, 0];
+    identity(this.projectionViewMatrix);
+    this._translation[0] = 0;
+    this._translation[1] = 0;
     this.origin = this.center;
     this.wantedOrigin = [...this.origin];
   }
@@ -66,7 +76,7 @@ export class Camera {
     );
   }
 
-  public update(t: Milliseconds, shake: number) {
+  public tick(t: Milliseconds, shake: number) {
     const wanted: Vector2 = [...this.wantedOrigin];
     subtract(wanted, wanted, this.center);
     scale(wanted, wanted, -1);

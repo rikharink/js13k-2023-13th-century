@@ -6,8 +6,6 @@ import { ResourceManager } from '../managers/resource-manager';
 import { Milliseconds } from '../types';
 import { SpriteRenderer } from './sprite-renderer';
 import { Renderer } from './renderer';
-import { HudRenderer } from './hud-renderer';
-import { Camera } from './camera';
 import { PostEffect } from './post-effects/post-effect';
 import { Texture } from '../textures/texture';
 import { Shader } from './shaders/shader';
@@ -16,17 +14,15 @@ export class MainRenderer implements Renderer {
   private sceneBuffer: Framebuffer;
   private resourceManager: ResourceManager;
   private spriteRenderer: SpriteRenderer;
-  private hudRenderer: HudRenderer;
   private fx: PostEffect[] = [];
   private bgTexture: Texture;
   private bgShader: Shader;
 
-  constructor(gl: WebGL2RenderingContext, resourceManager: ResourceManager, camera: Camera) {
+  constructor(gl: WebGL2RenderingContext, resourceManager: ResourceManager) {
     this.sceneBuffer = new Framebuffer(gl);
     this.resourceManager = resourceManager;
-    this.spriteRenderer = new SpriteRenderer(resourceManager, camera);
+    this.spriteRenderer = new SpriteRenderer(resourceManager);
     this.spriteRenderer.initialize(gl);
-    this.hudRenderer = new HudRenderer(gl, resourceManager);
     this.bgTexture = resourceManager.textures.get('bg')!;
     this.bgShader = resourceManager.shaders.get('post')!;
   }
@@ -50,15 +46,11 @@ export class MainRenderer implements Renderer {
     gl.uniform1i(this.bgShader['u_buffer'], 0);
     gl.drawArrays(GL_TRIANGLES, 0, 3);
 
-    this.spriteRenderer.begin(gl);
+    this.spriteRenderer.begin(gl, scene.camera);
     for (const sprite of scene.sprites) {
       this.spriteRenderer.drawSprite(gl, sprite);
     }
     this.spriteRenderer.end(gl);
-
-    this.hudRenderer.begin(gl);
-    this.hudRenderer.draw(gl, scene.sceneTime, scene.sprites.length);
-    this.hudRenderer.end(gl);
 
     if (this.fx.length === 0) {
       return;

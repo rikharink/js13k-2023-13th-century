@@ -1,3 +1,3 @@
 export interface Tickable {
-  render(now: number): void;
+  update(now: number): void;
 }

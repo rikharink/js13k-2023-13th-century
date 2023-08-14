@@ -12,16 +12,15 @@ import { KeyboardManager } from './managers/keyboard-manager';
 import { PointerManager } from './managers/pointer-manager';
 import { GamepadManager } from './managers/gamepad-manager';
 import { AudioSystem } from './audio/audio-system';
-import { BaseScene } from './scenes/base-scene';
 import { ResourceManagerBuilder } from './managers/resource-manager';
 import { ColorCorrection } from './rendering/post-effects/color-correction';
 import GUI from 'lil-gui';
 import noise from './textures/noise.svg';
 import parchment from './textures/parchment.svg';
-import { Camera } from './rendering/camera';
 import { TAU } from './math/const';
 import { Passthrough } from './rendering/post-effects/passthrough';
 import { generateSolidTexture } from './textures/textures';
+import { MainMenuScene } from './scenes/main-menu-scene';
 
 let lil;
 let gui: GUI;
@@ -30,6 +29,7 @@ let s: any;
 if (import.meta.env.DEV) {
   lil = await import('lil-gui');
   gui = new lil.GUI();
+  gui.close();
   s = await import('stats.js');
 }
 
@@ -45,9 +45,6 @@ const gl = canvas.getContext('webgl2', {
 export const keyboardManager = new KeyboardManager();
 export const gamepadManager = new GamepadManager();
 export const pointerManager = new PointerManager(canvas);
-
-const camera = new Camera([Settings.resolution[0], Settings.resolution[1]]);
-
 let isPaused = false;
 
 export const rng = getRandom('JS13K2023');
@@ -67,9 +64,9 @@ new ResourceManagerBuilder()
       .addPostEffect('cc', new ColorCorrection(gl, resourceManager))
       .addPostEffect('pt', new Passthrough(gl, resourceManager, null));
 
-    const renderer = new MainRenderer(gl, resourceManager, camera);
+    sceneManager.pushScene(new MainMenuScene(gl, sceneManager, resourceManager));
+    const renderer = new MainRenderer(gl, resourceManager);
 
-    sceneManager.pushScene(new BaseScene(resourceManager, camera));
     let stats: Stats | undefined = undefined;
     if (import.meta.env.DEV) {
       const settings = gui.addFolder('settings');
@@ -89,8 +86,8 @@ new ResourceManagerBuilder()
       scene.add(sceneManager.currentScene, 'traumaDampening', 0, 1, 0.00001);
 
       const cameraGui = gui.addFolder('camera');
-      cameraGui.add(camera, 'scale', 0.01, 10, 0.01).name('zoom');
-      cameraGui.add(camera, 'rotation', 0, TAU);
+      cameraGui.add(sceneManager.currentScene.camera, 'scale', 0.01, 10, 0.01).name('zoom');
+      cameraGui.add(sceneManager.currentScene.camera, 'rotation', 0, TAU);
       cameraGui.add(Settings, 'maxRotationalShake', 0, TAU, 0.001);
       cameraGui.add(Settings, 'maxTranslationalShake', 0, 1000, 1);
 
@@ -112,8 +109,10 @@ new ResourceManagerBuilder()
     let _accumulator = 0;
 
     function gameloop(now: number): void {
-      stats?.begin();
       requestAnimationFrame(gameloop);
+      stats?.begin();
+      resizeCanvas();
+
       if (isPaused) return;
 
       const dt = now - _then;
@@ -125,9 +124,11 @@ new ResourceManagerBuilder()
       _accumulator += dt;
       while (_accumulator >= Settings.fixedDeltaTime) {
         //FIXED STEP
-        sceneManager.currentScene.tick(camera);
-        camera.update(gameTime, sceneManager.currentScene.trauma * sceneManager.currentScene.trauma);
-
+        sceneManager.currentScene.tick();
+        sceneManager.currentScene.camera.tick(
+          gameTime,
+          sceneManager.currentScene.trauma * sceneManager.currentScene.trauma,
+        );
         keyboardManager.clear();
         gameTime += Settings.fixedDeltaTime * Settings.timeScale;
         _accumulator -= Settings.fixedDeltaTime;
@@ -172,3 +173,20 @@ new ResourceManagerBuilder()
     });
   })
   .catch((e) => console.error(e));
+
+function resizeCanvas() {
+  const internalWidth = Settings.resolution[0];
+  const internalHeight = Settings.resolution[1];
+  const windowWidth = window.innerWidth;
+  const windowHeight = window.innerHeight;
+  const scaleFactor = Math.min(windowWidth / internalWidth, windowHeight / internalHeight);
+  const scaledWidth = internalWidth * scaleFactor;
+  const scaledHeight = internalHeight * scaleFactor;
+  // Scale the canvas display size using CSS
+  const sw = scaledWidth + 'px';
+  const sh = scaledHeight + 'px';
+  if (canvas.style.width !== sw || canvas.style.height !== sh) {
+    canvas.style.width = sw;
+    canvas.style.height = sh;
+  }
+}

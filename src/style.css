@@ -1,5 +1,6 @@
 body {
   margin: 0;
+  font-family: Superclarendon, 'Bookman Old Style', 'URW Bookman', 'URW Bookman L', 'Georgia Pro', Georgia, serif;
 }
 
 #app {
@@ -14,13 +15,7 @@ body {
   align-items: center;
 }
 
-svg {
-  position: absolute;
-  max-width: 100%;
-  height: auto;
-}
-
 #g {
-  transition: border-radius 50ms linear;
   z-index: 1;
+  width: 100%;
 }
