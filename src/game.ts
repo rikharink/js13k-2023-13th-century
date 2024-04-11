@@ -12,11 +12,12 @@ import { KeyboardManager } from './managers/keyboard-manager';
 import { PointerManager } from './managers/pointer-manager';
 import { GamepadManager } from './managers/gamepad-manager';
 import { AudioSystem } from './audio/audio-system';
-import { ResourceManagerBuilder } from './managers/resource-manager';
+import { ResourceManager, ResourceManagerBuilder } from './managers/resource-manager';
 import { ColorCorrection } from './rendering/post-effects/color-correction';
 import GUI from 'lil-gui';
 import noise from './textures/noise.svg';
 import parchment from './textures/parchment.svg';
+import cow from './textures/cow.svg';
 import { TAU } from './math/const';
 import { Passthrough } from './rendering/post-effects/passthrough';
 import { generateSolidTexture } from './textures/textures';
@@ -38,7 +39,7 @@ app.innerHTML = `
 <canvas id=g width=${Settings.resolution[0]} height=${Settings.resolution[1]}></canvas>
 `;
 export const canvas = document.getElementById('g') as HTMLCanvasElement;
-const gl = canvas.getContext('webgl2', {
+export const gl = canvas.getContext('webgl2', {
   alpha: false,
 })!;
 
@@ -48,7 +49,7 @@ export const pointerManager = new PointerManager(canvas);
 let isPaused = false;
 
 export const rng = getRandom('JS13K2023');
-
+export let resourceManager: ResourceManager;
 const sceneManager = new SceneManager();
 export let gameTime = 0;
 
@@ -56,15 +57,17 @@ new ResourceManagerBuilder()
   .addShader('sprite', spriteVert, spriteFrag)
   .addShader('post', postVert, postFrag)
   .addProceduralTexture('sc', () => generateSolidTexture(gl, [1, 1, 1]))
+  .addSvgTexture('cow', cow, true, false)
   .addSvgTexture('snoise', noise, false, true)
   .addSvgTexture('bg', parchment, false, true)
   .build(gl, sceneManager)
-  .then((resourceManager) => {
+  .then((rm) => {
+    resourceManager = rm;
     resourceManager
       .addPostEffect('cc', new ColorCorrection(gl, resourceManager))
       .addPostEffect('pt', new Passthrough(gl, resourceManager, null));
 
-    sceneManager.pushScene(new MainMenuScene(gl, sceneManager, resourceManager));
+    sceneManager.pushScene(new MainMenuScene(sceneManager, resourceManager));
     const renderer = new MainRenderer(gl, resourceManager);
 
     let stats: Stats | undefined = undefined;
@@ -84,6 +87,17 @@ new ResourceManagerBuilder()
       const scene = gui.addFolder('scene');
       scene.add(sceneManager.currentScene, 'trauma', 0, 1, 0.01);
       scene.add(sceneManager.currentScene, 'traumaDampening', 0, 1, 0.00001);
+
+      const boids = gui.addFolder('boids');
+      boids.add(Settings, 'seperationDistance', 0, 1000);
+      boids.add(Settings, 'seperationWeight', 0, 1000);
+      boids.add(Settings, 'alignmentDistance', 0, 1000);
+      boids.add(Settings, 'alignmentWeight', 0, 1000);
+      boids.add(Settings, 'cohesionDistance', 0, 1000);
+      boids.add(Settings, 'cohesionWeight', 0, 1000);
+      boids.add(Settings, 'seekDistance', 0, 1000);
+      boids.add(Settings, 'seekWeight', 0, 1000);
+      boids.add(Settings, 'maxVelocity', 0, 1000);
 
       const cameraGui = gui.addFolder('camera');
       cameraGui.add(sceneManager.currentScene.camera, 'scale', 0.01, 10, 0.01).name('zoom');

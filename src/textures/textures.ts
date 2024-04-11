@@ -109,10 +109,11 @@ const tctx = textCanvas.getContext('2d')!;
 export function generateTextureFromText(gl: WebGL2RenderingContext, text: string, textOptions: TextOptions): Texture {
   tctx.font = `${textOptions.fontSize}px ${textOptions.fontFamily}`;
   tctx.fillStyle = textOptions.fillStyle;
-  tctx.textAlign = 'center';
-  tctx.textBaseline = 'middle';
-  const width = tctx.measureText(text).width;
-  const height = 2 * textOptions.fontSize;
+  tctx.textAlign = 'left';
+  tctx.textBaseline = 'top';
+  const metrics = tctx.measureText(text);
+  const width = metrics.width;
+  const height = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
   textCanvas.width = width;
   textCanvas.height = height;
 
@@ -121,5 +122,6 @@ export function generateTextureFromText(gl: WebGL2RenderingContext, text: string
   tctx.textAlign = 'left';
   tctx.textBaseline = 'top';
   tctx.fillText(text, 0, 0);
-  return textureFromCanvas(gl, textCanvas, [width, height]);
+
+  return textureFromCanvas(gl, textCanvas, [width, height - 1]);
 }

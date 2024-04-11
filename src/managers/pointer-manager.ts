@@ -1,4 +1,4 @@
-import { Vector2, copy, subtract } from '../math/vector2';
+import { Vector2, copy, mul, subtract } from '../math/vector2';
 
 export class PointerManager {
   private pointerState: boolean[] = [];
@@ -59,6 +59,10 @@ export class PointerManager {
   private onPointerMove(ev: PointerEvent): void {
     this.lastActivePointer = ev.pointerId;
     this.pointerLocation[ev.pointerId] = [ev.clientX - this.game.offsetLeft, ev.clientY - this.game.offsetTop];
+    mul(this.pointerLocation[ev.pointerId], this.pointerLocation[ev.pointerId], [
+      this.game.width / this.game.clientWidth,
+      this.game.height / this.game.clientHeight,
+    ]);
     const index = this.eventCache.findIndex((cachedEv) => cachedEv.pointerId === ev.pointerId);
     this.eventCache[index] = ev;
   }

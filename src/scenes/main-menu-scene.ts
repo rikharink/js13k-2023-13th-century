@@ -1,27 +1,23 @@
-import { keyboardManager } from '../game';
-import { PhysicsWorld } from '../game/physics-world';
 import { ResourceManager } from '../managers/resource-manager';
 import { SceneManager } from '../managers/scene-manager';
 import { rgbaString } from '../math/color';
 import { AABB } from '../math/geometry/aabb';
 import { sat } from '../math/util';
-import { Vector2, add, scale, subtract } from '../math/vector2';
+import { Vector2 } from '../math/vector2';
 import { DARK_JADE } from '../palette';
 import { Camera } from '../rendering/camera';
 import { Sprite } from '../rendering/sprite';
 import { Settings } from '../settings';
 import { Texture } from '../textures/texture';
-import { generateTextureFromText } from '../textures/textures';
+import { Button } from '../ui/button';
+import { Label } from '../ui/label';
+import { StackLayout } from '../ui/stack-layout';
+import { UIElement } from '../ui/ui-element';
 import { BaseScene } from './base-scene';
 import { Scene } from './scene';
+import { SettingsScene } from './settings-scene';
 
 const fontFamily = 'Superclarendon, "Bookman Old Style", "URW Bookman", "URW Bookman L", "Georgia Pro", Georgia, serif';
-const fillStyle = rgbaString(DARK_JADE, 255);
-
-let id = 0;
-function getTextSprite(texture: Texture, position: Vector2): Sprite {
-  return new Sprite(id++, texture.size, position, texture);
-}
 
 export class MainMenuScene implements Scene {
   public name: string = 'main menu';
@@ -30,36 +26,48 @@ export class MainMenuScene implements Scene {
     min: [0, 0],
     max: [Settings.resolution[0], Settings.resolution[1]],
   };
-  public trauma: number = 1;
-  public traumaDampening = 1;
+  public trauma: number = 0;
+  public traumaDampening = 0.02;
   public camera: Camera;
   public sceneTime: number = 0;
 
-  public physicsWorld: PhysicsWorld = new PhysicsWorld();
   public sceneManager: SceneManager;
   public resourceManager: ResourceManager;
+  private ui: UIElement[] = [];
 
-  constructor(gl: WebGL2RenderingContext, sceneManager: SceneManager, resourceManger: ResourceManager) {
+  constructor(sceneManager: SceneManager, resourceManger: ResourceManager) {
     this.camera = new Camera([Settings.resolution[0], Settings.resolution[1]]);
     this.sceneManager = sceneManager;
     this.resourceManager = resourceManger;
 
-    const titleTexture = generateTextureFromText(gl, 'Vellum', {
-      fontSize: 72,
-      fontFamily,
-      fillStyle,
-    });
-    const tpos = subtract([0, 0], this.camera.center, scale([0, 0], titleTexture.size, 0.5));
-    this.sprites.push(getTextSprite(titleTexture, tpos));
+    const menu = new StackLayout(16);
+    const buttonSize: Vector2 = [176, 50];
 
-    const subtitleTexture = generateTextureFromText(gl, 'a js13k game by Rik Harink', {
-      fontSize: 32,
-      fontFamily,
-      fillStyle,
-    });
-    const stpos = subtract([0, 0], this.camera.center, scale([0, 0], subtitleTexture.size, 0.5));
-    add(stpos, stpos, [0, 32]);
-    this.sprites.push(getTextSprite(subtitleTexture, stpos));
+    const play = new Button('play', 32, [0, 0], buttonSize, (btn) =>
+      this.shakeAndPush(btn, new BaseScene(sceneManager, resourceManger), 0.7, 200),
+    );
+    const settings = new Button('settings', 32, [0, 0], buttonSize, (btn) =>
+      this.shakeAndPush(btn, new SettingsScene(sceneManager, resourceManger), 0.7, 200),
+    );
+    menu.add(new Label('Vellum', 72, fontFamily, DARK_JADE, [0, 0]));
+    menu.add(new Label('a JS13K game by Rik Harink', 32, fontFamily, DARK_JADE, [0, 0]));
+    menu.add(play);
+    menu.add(settings);
+    menu.center(this.camera);
+    this.ui.push(menu);
+    this.sprites.push(...menu.sprites);
+  }
+
+  private shakeAndPush(button: Button, scene: Scene, intensity: number, duration: number): void {
+    this.trauma = intensity;
+    setTimeout(() => this.sceneManager.pushScene(scene), duration);
+    setTimeout(
+      (() => {
+        button.disabled = false;
+        this.trauma = 0;
+      }).bind(this),
+      200,
+    );
   }
 
   onPush(): void {
@@ -72,9 +80,11 @@ export class MainMenuScene implements Scene {
   }
 
   tick(): void {
-    if (keyboardManager.hasKeyUp('Enter')) {
-      this.sceneManager.pushScene(new BaseScene(this.sceneManager, this.resourceManager));
+    for (let ele of this.ui) {
+      ele.tick();
     }
+    this.camera.tick(this.sceneTime, this.trauma * this.trauma);
+
     this.trauma -= this.traumaDampening;
     this.trauma = sat(this.trauma);
     this.sceneTime += Settings.fixedDeltaTime * Settings.timeScale;

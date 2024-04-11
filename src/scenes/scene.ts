@@ -1,4 +1,3 @@
-import { PhysicsWorld } from '../game/physics-world';
 import { ResourceManager } from '../managers/resource-manager';
 import { SceneManager } from '../managers/scene-manager';
 import { AABB } from '../math/geometry/aabb';
@@ -16,7 +15,6 @@ export interface Scene {
   onPush(): void;
   onPop(): void;
   tick(): void;
-  physicsWorld: PhysicsWorld;
   sceneManager: SceneManager;
   resourceManager: ResourceManager;
 }

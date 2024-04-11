@@ -1,4 +1,3 @@
-import { PhysicsWorld } from '../game/physics-world';
 import { ResourceManager } from '../managers/resource-manager';
 import { SceneManager } from '../managers/scene-manager';
 import { AABB } from '../math/geometry/aabb';
@@ -33,7 +32,6 @@ export class LoaderScene implements Scene {
     this.canvas.style.position = 'absolute';
   }
 
-  public physicsWorld!: PhysicsWorld;
   public sceneManager!: SceneManager;
   public resourceManager!: ResourceManager;
 

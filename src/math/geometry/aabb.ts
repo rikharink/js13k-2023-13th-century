@@ -1,4 +1,4 @@
-import { Vector2, subtract } from '../vector2';
+import { Vector2, add, scale, subtract } from '../vector2';
 import { Rectangle } from './rectangle';
 
 export interface AABB {
@@ -8,6 +8,12 @@ export interface AABB {
 
 export function size(aabb: AABB): Vector2 {
   return subtract([0, 0], aabb.max, aabb.min);
+}
+
+export function center(aabb: AABB): Vector2 {
+  const a = aabb.min;
+  const b = scale([0, 0], aabb.max, 0.5);
+  return add([0, 0], a, b);
 }
 
 export function toRectangle(aabb: AABB): Rectangle {
